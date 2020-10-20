@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-2">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .container{
+      position: relative;
+      display: inline-block;
+    }
+    .select{
+      width: 150px;
+      height: 150px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+
+      border-radius: 2px;
+      border: 1px solid #ffffff;
+
+      transform-origin: 100% 100%;
+    }
+
+    .select-btn{
+      width: 20px;
+      height: 20px;
+      font-size: 13px;
+      color: #69606b;
+      cursor: pointer;
+      text-align: center;
+      line-height: 20px;
+      border-radius: 3px;
+      position: absolute;
+      bottom: 3px;
+      background-color: white;
+    }
+
+    .select-btn-yes{
+      left: 3px;
+    }
+
+    .select-btn-no{
+      right: 3px;
+    }
+
+    .dot{
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      position: absolute;
+      background-color: white;
+    }
+    .dot:nth-child(1){
+      left: -2.5px;
+      top: -2.5px;
+      cursor: nwse-resize;
+
+    }
+
+    .dot:nth-child(2){
+      right: -2.5px;
+      top: -2.5px;
+      cursor: nesw-resize;
+    }
+
+    .dot:nth-child(3){
+      left: -2.5px;
+      bottom: -2.5px;
+      cursor: nesw-resize;
+    }
+
+    .dot:nth-child(4){
+      right: -2.5px;
+      bottom: -2.5px;
+      cursor: nwse-resize;
+    }
+
+    img{
+      border: 1px solid;
+    }
+  </style>  
+</head>
+<body>
+  <div class="container">
+    <canvas width="400" height="400" id="tutorial">
+
+    </canvas>
+    <div class="select">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="select-btn select-btn-yes">✓</div>
+      <div class="select-btn select-btn-no">✕</div>
+    </div>
+  </div>
+  <img src="" alt="">
+  <input type="file" >
+</body>
+<script>
+  let canvas = document.querySelector("canvas")
+  let ctx = canvas.getContext("2d")
+  let select = document.querySelector(".select")
+  let myImg = document.querySelector("img")
+  let dots = document.querySelectorAll(".dot")
+  let selectBtnYes = document.querySelector(".select-btn-yes")
+
+  //数据对象
+  let obj = {
+    ol:0,
+    ot:0,
+    sw_default:150,
+    sh_default:150,
+    sw:150,
+    sh:150,
+    d1:{
+      x:50,
+      y:50
+    },
+    d2:{
+      x:150,
+      y:50
+    },
+    d3:{
+      x:50,
+      y:150
+    },
+    d4:{
+      x:150,
+      y:150
+    },
+    scale:1
+    }
+
+  let img = new Image()
+  img.src = "girl.jpg"
+
+  img.onload = () => {
+    ctx.drawImage(img,0,0)
+  }
+
+  //为选择框绑定鼠标事件
+  select.addEventListener("mousedown",down)
+
+  //为select-btn-yes设置事件
+  selectBtnYes.addEventListener("click",selectBtnYesHandle)
+
+  //遍历dots绑定事件
+  dots.forEach((item,index) => {
+    switch(index){
+      case 0:{
+        //操作点为1时，改变内容为dot1的坐标和select的宽高
+        item.addEventListener("mousedown",(e) => {
+          document.addEventListener("mousemove",dotDocumentMove1)
+          select.addEventListener("mousemove",dotSelectMove1)
+          e.stopPropagation()
+        })
+        break
+      }
+      case 1:{
+        //操作点为2,改变dot1的坐标和select的宽高
+        //修改transform-origin = 0% 100%
+        item.addEventListener("mousedown",(e) => {
+          document.addEventListener("mousemove",dotDocumentMove2)
+          select.addEventListener("mousemove",dotSelectMove2)
+          e.stopPropagation()
+        })
+      }
+      case 2:{
+        //操作点为3,改变dot1的坐标和select的宽高
+        //修改transform-origin = 0% 0%
+        item.addEventListener("mousedown",(e) => {
+          document.addEventListener("mousemove",dotDocumentMove3)
+          select.addEventListener("mousemove",dotSelectMove3)
+          e.stopPropagation()
+        })
+      }
+      case 3:{
+        //操作点为4,改变dot1的坐标和select的宽高
+        //修改transform-origin = 0% 0%
+        item.addEventListener("mousedown",(e) => {
+          document.addEventListener("mousemove",dotDocumentMove4)
+          select.addEventListener("mousemove",dotSelectMove4)
+          e.stopPropagation()
+        })
+      }
+    }
+      //操作点为dot2,dot3,dot4时，只改变select的宽高，不改变dot1坐标
+  })
+  function dotSelectMove1(e){
+  // select.style.transformOrigin = "100% 100%"
+  let originx = (Math.floor(select.getBoundingClientRect().width) / obj.sw_default) * 100
+  let originy = (Math.floor(select.getBoundingClientRect().height) / obj.sh_default) * 100
+  select.style.transformOrigin = `${originx}% ${originy}%`
+      //放大操作
+  let ol = e.clientX - select.offsetLeft
+  let ot = e.clientY - select.offsetTop
+  obj.d1.x = e.clientX 
+  obj.d1.y = e.clientY 
+  // setDots()
+  //使用scale来实现缩放
+  obj.scale -= 0.003
+  select.style.transform = `scale(${obj.scale})`
+  //更新dot的坐标以及select的宽高
+  obj.d1.x = Math.floor(select.getBoundingClientRect().left)
+  obj.d1.y = Math.floor(select.getBoundingClientRect().top)
+  obj.sw = Math.floor(select.getBoundingClientRect().width)
+  obj.sh = Math.floor(select.getBoundingClientRect().height)
+  select.addEventListener("mouseup",() => {
+    select.removeEventListener("mousemove",dotSelectMove1)
+  })
+  document.addEventListener("mousemove",() => {
+    select.removeEventListener("mousemove",dotSelectMove1)
+  })
+  e.stopPropagation()
+}
+function dotSelectMove2(e){
+  // select.style.transformOrigin = "0% 100%"
+  let originx = (Math.floor(select.getBoundingClientRect().width) / obj.sw_default) * 100
+  let originy = (Math.floor(select.getBoundingClientRect().height) / obj.sh_default) * 100
+  select.style.transformOrigin = `0% ${originy}%`
+      //放大操作
+  let ol = e.clientX - select.offsetLeft
+  let ot = e.clientY - select.offsetTop
+  obj.d1.x = e.clientX 
+  obj.d1.y = e.clientY 
+  // setDots()
+  //使用scale来实现缩放
+  obj.scale -= 0.003
+  select.style.transform = `scale(${obj.scale})`
+  //更新dot的坐标以及select的宽高
+  obj.d1.x = Math.floor(select.getBoundingClientRect().left)
+  obj.d1.y = Math.floor(select.getBoundingClientRect().top)
+  obj.sw = Math.floor(select.getBoundingClientRect().width)
+  obj.sh = Math.floor(select.getBoundingClientRect().height)
+  select.addEventListener("mouseup",() => {
+    select.removeEventListener("mousemove",dotSelectMove2)
+  })
+  document.addEventListener("mousemove",() => {
+    select.removeEventListener("mousemove",dotSelectMove2)
+  })
+  e.stopPropagation()
+}
+function dotSelectMove3(e){
+      // select.style.transformOrigin = "0% 100%"
+      let originx = (Math.floor(select.getBoundingClientRect().width) / obj.sw_default) * 100
+  let originy = (Math.floor(select.getBoundingClientRect().height) / obj.sh_default) * 100
+  select.style.transformOrigin = `0% ${originy}%`
+      //放大操作
+  let ol = e.clientX - select.offsetLeft
+  let ot = e.clientY - select.offsetTop
+  obj.d1.x = e.clientX 
+  obj.d1.y = e.clientY 
+  // setDots()
+  //使用scale来实现缩放
+  obj.scale -= 0.003
+  select.style.transform = `scale(${obj.scale})`
+  //更新dot的坐标以及select的宽高
+  obj.d1.x = Math.floor(select.getBoundingClientRect().left)
+  obj.d1.y = Math.floor(select.getBoundingClientRect().top)
+  obj.sw = Math.floor(select.getBoundingClientRect().width)
+  obj.sh = Math.floor(select.getBoundingClientRect().height)
+  select.addEventListener("mouseup",() => {
+    select.removeEventListener("mousemove",dotSelectMove3)
+  })
+  document.addEventListener("mousemove",() => {
+    select.removeEventListener("mousemove",dotSelectMove3)
+  })
+  e.stopPropagation()
+}
+function dotSelectMove4(e){
+      // select.style.transformOrigin = "0% 100%"
+      let originx = (Math.floor(select.getBoundingClientRect().width) / obj.sw_default) * 100
+  let originy = (Math.floor(select.getBoundingClientRect().height) / obj.sh_default) * 100
+  select.style.transformOrigin = `${originx}% ${originy}%`
+      //放大操作
+  let ol = e.clientX - select.offsetLeft
+  let ot = e.clientY - select.offsetTop
+  obj.d1.x = e.clientX 
+  obj.d1.y = e.clientY 
+  // setDots()
+  //使用scale来实现缩放
+  obj.scale -= 0.003
+  select.style.transform = `scale(${obj.scale})`
+  //更新dot的坐标以及select的宽高
+  obj.d1.x = Math.floor(select.getBoundingClientRect().left)
+  obj.d1.y = Math.floor(select.getBoundingClientRect().top)
+  obj.sw = Math.floor(select.getBoundingClientRect().width)
+  obj.sh = Math.floor(select.getBoundingClientRect().height)
+  select.addEventListener("mouseup",() => {
+    select.removeEventListener("mousemove",dotSelectMove4)
+  })
+  document.addEventListener("mousemove",() => {
+    select.removeEventListener("mousemove",dotSelectMove4)
+  })
+  e.stopPropagation()
+}
+function dotDocumentMove1(e){
+  // select.style.transformOrigin = "100% 100%"
+  
+  let originx = (Math.floor(select.getBoundingClientRect().width) / obj.sw_default) * 100
+  let originy = (Math.floor(select.getBoundingClientRect().height) / obj.sh_default) * 100
+  select.style.transformOrigin = `${originx}% ${originy}%`
+  //放大操作
+  let ol = e.clientX - select.offsetLeft
+  let ot = e.clientY - select.offsetTop
+  obj.d1.x = e.clientX 
+  obj.d1.y = e.clientY 
+  // setDots()
+  //使用scale来实现缩放
+  obj.scale += 0.003
+  select.style.transform = `scale(${obj.scale})`
+  //更新dot的坐标以及select的宽高
+  obj.d1.x = Math.floor(select.getBoundingClientRect().left)
+  obj.d1.y = Math.floor(select.getBoundingClientRect().top)
+  obj.sw = Math.floor(select.getBoundingClientRect().width)
+  obj.sh = Math.floor(select.getBoundingClientRect().height)
+  document.addEventListener("mouseup",() => {
+    //取消document的mousemove
+    document.removeEventListener("mousemove",dotDocumentMove1) 
+  })
+  select.addEventListener("mousemove",() => {
+    //取消document的mousemove
+    document.removeEventListener("mousemove",dotDocumentMove1) 
+  })
+}
+function dotDocumentMove2(e){
+  // select.style.transformOrigin = "0% 100%"
+  let originx = (Math.floor(select.getBoundingClientRect().width) / obj.sw_default) * 100
+  let originy = (Math.floor(select.getBoundingClientRect().height) / obj.sh_default) * 100
+  select.style.transformOrigin = `0% ${originy}%`
+  //放大操作
+  let ol = e.clientX - select.offsetLeft
+  let ot = e.clientY - select.offsetTop
+  obj.d1.x = e.clientX 
+  obj.d1.y = e.clientY 
+  // setDots()
+  //使用scale来实现缩放
+  obj.scale += 0.003
+  select.style.transform = `scale(${obj.scale})`
+  //更新dot的坐标以及select的宽高
+  obj.d1.x = Math.floor(select.getBoundingClientRect().left)
+  obj.d1.y = Math.floor(select.getBoundingClientRect().top)
+  obj.sw = Math.floor(select.getBoundingClientRect().width)
+  obj.sh = Math.floor(select.getBoundingClientRect().height)
+  document.addEventListener("mouseup",() => {
+    //取消document的mousemove
+    document.removeEventListener("mousemove",dotDocumentMove2) 
+  })
+  select.addEventListener("mousemove",() => {
+    //取消document的mousemove
+    document.removeEventListener("mousemove",dotDocumentMove2) 
+  })
+}
+function dotDocumentMove3(e){
+  // select.style.transformOrigin = "0% 100%"
+  let originx = (Math.floor(select.getBoundingClientRect().width) / obj.sw_default) * 100
+  let originy = (Math.floor(select.getBoundingClientRect().height) / obj.sh_default) * 100
+  select.style.transformOrigin =  `0% ${originy}%`
+  //放大操作
+  let ol = e.clientX - select.offsetLeft
+  let ot = e.clientY - select.offsetTop
+  obj.d1.x = e.clientX 
+  obj.d1.y = e.clientY 
+  // setDots()
+  //使用scale来实现缩放
+  obj.scale += 0.003
+  select.style.transform = `scale(${obj.scale})`
+  //更新dot的坐标以及select的宽高
+  obj.d1.x = Math.floor(select.getBoundingClientRect().left)
+  obj.d1.y = Math.floor(select.getBoundingClientRect().top)
+  obj.sw = Math.floor(select.getBoundingClientRect().width)
+  obj.sh = Math.floor(select.getBoundingClientRect().height)
+  document.addEventListener("mouseup",() => {
+    //取消document的mousemove
+    document.removeEventListener("mousemove",dotDocumentMove3) 
+  })
+  select.addEventListener("mousemove",() => {
+    //取消document的mousemove
+    document.removeEventListener("mousemove",dotDocumentMove3) 
+  })
+}
+function dotDocumentMove4(e){
+  // select.style.transformOrigin = "0% 100%"
+  let originx = (Math.floor(select.getBoundingClientRect().width) / obj.sw_default) * 100
+  let originy = (Math.floor(select.getBoundingClientRect().height) / obj.sh_default) * 100
+  select.style.transformOrigin =  `${originx}% ${originy}%`
+  //放大操作
+  let ol = e.clientX - select.offsetLeft
+  let ot = e.clientY - select.offsetTop
+  obj.d1.x = e.clientX 
+  obj.d1.y = e.clientY 
+  // setDots()
+  //使用scale来实现缩放
+  obj.scale += 0.003
+  select.style.transform = `scale(${obj.scale})`
+  //更新dot的坐标以及select的宽高
+  obj.d1.x = Math.floor(select.getBoundingClientRect().left)
+  obj.d1.y = Math.floor(select.getBoundingClientRect().top)
+  obj.sw = Math.floor(select.getBoundingClientRect().width)
+  obj.sh = Math.floor(select.getBoundingClientRect().height)
+  document.addEventListener("mouseup",() => {
+    //取消document的mousemove
+    document.removeEventListener("mousemove",dotDocumentMove4) 
+  })
+  select.addEventListener("mousemove",() => {
+    //取消document的mousemove
+    document.removeEventListener("mousemove",dotDocumentMove4) 
+  })
+}
+  //down事件句柄
+  function down(e){
+    obj.ol = e.clientX - select.offsetLeft
+    obj.ot = e.clientY - select.offsetTop
+    document.addEventListener("mousemove",move)
+  }
+
+  //move事件句柄
+  function move(e){
+    var left = e.clientX - obj.ol
+    var top = e.clientY - obj.ot
+    select.style.left = left + "px"
+    select.style.top = top + "px"
+    //document的mouseup事件在move中执行，否则在点击dot松手后也会触发
+    document.addEventListener("mouseup",documentUpHandle)
+  }
+
+  //鼠标在document松开事件句柄
+  function documentUpHandle(){
+    document.removeEventListener("mousedown",down)
+    document.removeEventListener("mousemove",move)
+    obj.d1.x = Math.floor(select.getBoundingClientRect().left)
+    obj.d1.y = Math.floor(select.getBoundingClientRect().top)
+    // canvas.toBlob(function(blob){
+    //   var url = URL.createObjectURL(blob)
+    //   var newImg = new Image()
+    //   newImg.onload = function(){
+    //     URL.revokeObjectURL(url)
+    //   }
+    //   newImg.src = url
+    //   document.body.append(newImg)
+    // })
+    document.removeEventListener("mouseup",documentUpHandle)
+  }
+
+  //select-btn-yes按钮的确定函数
+  function selectBtnYesHandle(){
+    ctx.clearRect(0,0,400,400)
+    ctx.drawImage(img,obj.d1.x,obj.d1.y,obj.sw,obj.sh,100,100,150,150)
+    select.style.visibility = "hidden"
+    myImg.src = canvas.toDataURL()
+  }
+
+
+</script>
+</html>
